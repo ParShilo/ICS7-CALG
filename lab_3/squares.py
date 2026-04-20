@@ -1,3 +1,5 @@
+import math
+
 def build_normal_system(x, y, rho, n):
     size = n + 1
     A = [[0.0 for _ in range(size)] for _ in range(size)]
@@ -57,3 +59,131 @@ def evaluate_polynomial(a, x_vals):
             s += a[k] * (xi ** k)
         y_vals.append(s)
     return y_vals
+
+#------------------------------------------
+
+def get_basis_2d(degree):
+    basis = []
+    for i in range(degree + 1):
+        for j in range(degree + 1 - i):
+            basis.append(lambda xi, yi, _i=i, _j=j: (xi ** _i) * (yi ** _j))
+    return basis
+
+def least_squares_2d(x, y, z, rho, degree):
+    basis = get_basis_2d(degree)
+    m = len(basis)
+    A = [[0.0] * m for _ in range(m)]
+    b = [0.0] * m
+    N = len(x)
+
+    for j in range(m):
+        for k in range(m):
+            s = 0.0
+            for i in range(N):
+                s += rho[i] * basis[j](x[i], y[i]) * basis[k](x[i], y[i])
+            A[j][k] = s
+        s = 0.0
+        for i in range(N):
+            s += rho[i] * z[i] * basis[j](x[i], y[i])
+        b[j] = s
+
+    coeffs = gaussian_elimination(A, b)
+    return coeffs, basis
+
+def evaluate_polynomial_2d(coeffs, basis, xi, yi):
+    return sum(c * func(xi, yi) for c, func in zip(coeffs, basis))
+
+#------------------------------------------------
+
+def fit_power(x, y):
+# Степенная:  y = a * x^b 
+    X = []
+    Y = []
+    rho = [1.0] * len(x)
+
+    for i in range(len(x)):
+        X.append(math.log(x[i]))
+        Y.append(math.log(y[i]))
+
+    coeffs = least_squares(X, Y, rho, 1)
+
+    A = coeffs[0]
+    b = coeffs[1]
+
+    a = math.exp(A)
+
+    return a, b
+
+def fit_exponential(x, y):
+# Экспонента: y = a * e^(bx)
+    X = x[:]  
+    Y = []
+    rho = [1.0] * len(x)
+
+    for i in range(len(x)):
+        Y.append(math.log(y[i]))
+
+    coeffs = least_squares(X, Y, rho, 1)
+
+    A = coeffs[0]
+    b = coeffs[1]
+
+    a = math.exp(A)
+
+    return a, b
+
+def fit_fraction(x, y):
+# Гипербола: y = a + b/x
+    X = []
+    Y = y[:]
+    rho = [1.0] * len(x)
+
+    for i in range(len(x)):
+        X.append(1.0 / x[i])
+
+    coeffs = least_squares(X, Y, rho, 1)
+
+    a = coeffs[0]
+    b = coeffs[1]
+
+    return a, b
+
+def fit_rational(x, y):
+# Рациональная: y = a0 / (a1 + a2 * x)
+    X = x[:]
+    Y = []
+    rho = [1.0] * len(x)
+
+    for i in range(len(x)):
+        Y.append(1.0 / y[i])
+
+    coeffs = least_squares(X, Y, rho, 1)
+
+    A = coeffs[0]
+    B = coeffs[1]
+
+    a0 = 1.0
+    a1 = A
+    a2 = B
+
+    return a0, a1, a2
+
+def compute_rms(y_true, y_pred):
+    s = 0.0
+    N = len(y_true)
+    for i in range(N):
+        s += (y_true[i] - y_pred[i]) ** 2
+    return math.sqrt(s / N)
+
+def eval_power(x, a, b):
+    return [a * (xi ** b) for xi in x]
+
+def eval_exponential(x, a, b):
+    return [a * math.exp(b * xi) for xi in x]
+
+def eval_fraction(x, a, b):
+    return [a + b / xi for xi in x]
+
+def eval_rational(x, a0, a1, a2):
+    return [a0 / (a1 + a2 * xi) for xi in x]
+
