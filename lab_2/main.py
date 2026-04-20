@@ -43,8 +43,8 @@ def get_point_input(coords):
     return (x, y, z)
 
 def get_degree_input():
-    n = int(input("Степень полинома (1-4): ").strip())
-    return max(1, min(4, n))
+    n = int(input("Степень полинома (0-4): ").strip())
+    return max(0, min(4, n))
 
 def main():
     filepath = 'data.txt'
