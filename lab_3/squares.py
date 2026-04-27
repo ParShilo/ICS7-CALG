@@ -20,28 +20,48 @@ def build_normal_system(x, y, rho, n):
 
     return A, b
 
-def gaussian_elimination(A, b):
+def gaussian_elimination(A, b, eps=1e-12):
     n = len(b)
+
+    A = [row[:] for row in A]
+    b = b[:]
+
     for i in range(n):
+        # Поиск главного элемента
         max_row = i
+        max_val = abs(A[i][i])
+
         for k in range(i + 1, n):
-            if abs(A[k][i]) > abs(A[max_row][i]):
+            if abs(A[k][i]) > max_val:
+                max_val = abs(A[k][i])
                 max_row = k
 
-        A[i], A[max_row] = A[max_row], A[i]
-        b[i], b[max_row] = b[max_row], b[i]
+        # Проверка вырожденности
+        if max_val < eps:
+            raise ValueError("Матрица вырождена или плохо обусловлена.\n" "Возможно, степень полинома слишком велика (n >= N).")
 
+        # Перестановка строк
+        if max_row != i:
+            A[i], A[max_row] = A[max_row], A[i]
+            b[i], b[max_row] = b[max_row], b[i]
+
+        # Прямой ход
         for k in range(i + 1, n):
             factor = A[k][i] / A[i][i]
             for j in range(i, n):
                 A[k][j] -= factor * A[i][j]
             b[k] -= factor * b[i]
 
+    # Обратный ход
     x_sol = [0.0 for _ in range(n)]
     for i in range(n - 1, -1, -1):
+        if abs(A[i][i]) < eps:
+            raise ValueError("Деление на ноль при обратном ходе (матрица вырождена)")
+
         s = b[i]
         for j in range(i + 1, n):
             s -= A[i][j] * x_sol[j]
+
         x_sol[i] = s / A[i][i]
 
     return x_sol
@@ -187,3 +207,82 @@ def eval_fraction(x, a, b):
 def eval_rational(x, a0, a1, a2):
     return [a0 / (a1 + a2 * xi) for xi in x]
 
+#------------------------------------------------
+
+def u0(x):
+    return 1 - x
+
+def du0(x):
+    return -1.0
+
+def d2u0(x):
+    return 0.0
+
+def uk(x, k):
+    return x**k * (1 - x)
+
+def duk(x, k):
+    return k * x**(k - 1) - (k + 1) * x**k
+
+def d2uk(x, k):
+    if k == 1:
+        return -2.0
+    return k*(k-1)*x**(k-2) - k*(k+1)*x**(k-1)
+
+# L[u] = u'' + x u' + u
+def L_u0(x):
+    return d2u0(x) + x * du0(x) + u0(x)
+
+def L_uk(x, k):
+    return d2uk(x, k) + x * duk(x, k) + uk(x, k)
+
+def f_rhs(x):
+    return 2 * x
+
+def R0(x):
+    return L_u0(x) - f_rhs(x)
+
+def solve_bvp_least_squares(m, N_points=20):
+    xs = [i / (N_points - 1) for i in range(N_points)]
+
+    A = [[0.0 for _ in range(m)] for _ in range(m)]
+    b = [0.0 for _ in range(m)]
+
+    # alpha[i][k] = L[uk](x_i)
+    alpha = []
+    for xi in xs:
+        row = []
+        for k in range(1, m + 1):
+            row.append(L_uk(xi, k))
+        alpha.append(row)
+
+    # R0 в точках
+    R0_vals = [R0(xi) for xi in xs]
+
+    for j in range(m):
+        for k in range(m):
+            s = 0.0
+            for i in range(N_points):
+                s += alpha[i][k] * alpha[i][j]
+            A[j][k] = s
+
+    for j in range(m):
+        s = 0.0
+        for i in range(N_points):
+            s += R0_vals[i] * alpha[i][j]
+        b[j] = -s
+
+    C = gaussian_elimination(A, b)
+
+    return C
+
+def evaluate_bvp_solution(x_vals, C):
+    y_vals = []
+
+    for x in x_vals:
+        s = u0(x)
+        for k, c in enumerate(C, start=1):
+            s += c * uk(x, k)
+        y_vals.append(s)
+
+    return y_vals

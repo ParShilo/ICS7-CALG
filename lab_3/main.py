@@ -37,7 +37,7 @@ class Lab3App:
 
         self.tab4 = ttk.Frame(self.notebook)
         self.notebook.add(self.tab4, text="4. Краевая задача")
-        ttk.Label(self.tab4, text="В разработке").pack(expand=True)
+        self.setup_tab4()
 
 #-----------------------------------------------------------------------------
     def setup_tab1(self):
@@ -140,11 +140,22 @@ class Lab3App:
             except ValueError:
                 messagebox.showerror("Ошибка", "n должно быть целым числом")
                 return
+            if n >= len(x):
+                messagebox.showerror("Ошибка","Степень полинома должна быть меньше числа точек (n < N).")
+                return
             
-            rho = least_squares(x, y, rho_eq, n)
+            try:
+                rho = least_squares(x, y, rho_eq, n)
+            except ValueError as e:
+                messagebox.showerror("Ошибка", str(e))
+                return
             self._draw_line_1d(rho, f"n={n}, ρ=1", color='grey')
 
-            coeffs = least_squares(x, y, rho_user, n)
+            try:
+                coeffs = least_squares(x, y, rho_user, n)
+            except ValueError as e:
+                messagebox.showerror("Ошибка", str(e))
+                return
             self._draw_line_1d(coeffs, f"n={n}, ρ из таблицы", color='black')
 
         elif mode == 'weights':
@@ -155,14 +166,29 @@ class Lab3App:
             except ValueError:
                 messagebox.showerror("Ошибка", "n должно быть целым числом")
                 return
+            if n >= len(x):
+                messagebox.showerror("Ошибка","Степень полинома должна быть меньше числа точек (n < N).")
+                return
 
-            n1 = least_squares(x, y, rho_eq, 1)
+            try:
+                n1 = least_squares(x, y, rho_eq, 1)
+            except ValueError as e:
+                messagebox.showerror("Ошибка", str(e))
+                return
             self._draw_line_1d(n1, "n=1 ρ=1", color='grey', style='-')
 
-            n2 = least_squares(x, y, rho_eq, 2)
+            try:
+                n2 = least_squares(x, y, rho_eq, 2)
+            except ValueError as e:
+                messagebox.showerror("Ошибка", str(e))
+                return
             self._draw_line_1d(n2, "n=2 ρ=1", color='grey', style='--')
 
-            n1_user = least_squares(x, y, rho_user, n)
+            try:
+                n1_user = least_squares(x, y, rho_user, n)
+            except ValueError as e:
+                messagebox.showerror("Ошибка", str(e))
+                return
             self._draw_line_1d(n1_user, "ρ из таблицы", color='black', style='-')
 
         self.ax1.legend(fontsize=9)
@@ -275,23 +301,39 @@ class Lab3App:
         handles = [Patch(color='black', label='Исходные точки')]
 
         if mode == 'both':
-            c1, b1 = least_squares_2d(x, y, z, rho_eq, 1)
+            try:
+                c1, b1 = least_squares_2d(x, y, z, rho_eq, 1)
+            except ValueError as e:
+                messagebox.showerror("Ошибка", str(e))
+                return
             Z1 = np.array([[evaluate_polynomial_2d(c1, b1, xi, yi) for xi in Xg[0]] for yi in Yg[:,0]])
             self.ax2.plot_surface(Xg, Yg, Z1, alpha=0.6, color='red')
             handles.append(Patch(color='red', alpha=0.6, label='n=1, ρ=1'))
 
-            c2, b2 = least_squares_2d(x, y, z, rho_eq, 2)
+            try:
+                c2, b2 = least_squares_2d(x, y, z, rho_eq, 2)
+            except ValueError as e:
+                messagebox.showerror("Ошибка", str(e))
+                return
             Z2 = np.array([[evaluate_polynomial_2d(c2, b2, xi, yi) for xi in Xg[0]] for yi in Yg[:,0]])
             self.ax2.plot_surface(Xg, Yg, Z2, alpha=0.5, color='blue')
             handles.append(Patch(color='blue', alpha=0.5, label='n=2, ρ=1'))
             
         elif mode == 'weights':
-            c1, b1 = least_squares_2d(x, y, z, rho_eq, 1)
+            try:
+                c1, b1 = least_squares_2d(x, y, z, rho_eq, 1)
+            except ValueError as e:
+                messagebox.showerror("Ошибка", str(e))
+                return
             Z1 = np.array([[evaluate_polynomial_2d(c1, b1, xi, yi) for xi in Xg[0]] for yi in Yg[:,0]])
             self.ax2.plot_surface(Xg, Yg, Z1, alpha=0.7, color='red')
             handles.append(Patch(color='red', alpha=0.7, label='n=1, ρ=1'))
 
-            c1_u, b1_u = least_squares_2d(x, y, z, rho_user, 1)
+            try:
+                c1_u, b1_u = least_squares_2d(x, y, z, rho_user, 1)
+            except ValueError as e:
+                messagebox.showerror("Ошибка", str(e))
+                return
             Z1_u = np.array([[evaluate_polynomial_2d(c1_u, b1_u, xi, yi) for xi in Xg[0]] for yi in Yg[:,0]])
             self.ax2.plot_surface(Xg, Yg, Z1_u, alpha=0.7, color='green')
             handles.append(Patch(color='green', alpha=0.7, label='n=1, ρ из таблицы'))
@@ -340,28 +382,38 @@ class Lab3App:
         y1 = eval_power(x, a1, b1)
         rms1 = compute_rms(y, y1)
         results["a * x^b"] = rms1
-        self.ax3.plot(x, y1, label="a * x^b")
 
         # 2. Экспонента
         a2, b2 = fit_exponential(x, y)
         y2 = eval_exponential(x, a2, b2)
         rms2 = compute_rms(y, y2)
         results["a * e^(bx)"] = rms2
-        self.ax3.plot(x, y2, label="a * e^(bx)")
 
         # 3. Гипербола
         a3, b3 = fit_fraction(x, y)
         y3 = eval_fraction(x, a3, b3)
         rms3 = compute_rms(y, y3)
         results["a + b/x"] = rms3
-        self.ax3.plot(x, y3, label="a + b/x")
 
         # 4. Рациональная
         a0, a1_r, a2_r = fit_rational(x, y)
         y4 = eval_rational(x, a0, a1_r, a2_r)
         rms4 = compute_rms(y, y4)
         results["a0/(a1+a2x)"] = rms4
-        self.ax3.plot(x, y4, label="a0/(a1+a2x)")
+
+        x_dense = np.linspace(min(x), max(x), 300)
+
+        y1_dense = eval_power(x_dense, a1, b1)
+        self.ax3.plot(x_dense, y1_dense, label="a * x^b")
+
+        y2_dense = eval_exponential(x_dense, a2, b2)
+        self.ax3.plot(x_dense, y2_dense, label="a * e^(bx)")
+
+        y3_dense = eval_fraction(x_dense, a3, b3)
+        self.ax3.plot(x_dense, y3_dense, label="a + b/x")
+
+        y4_dense = eval_rational(x_dense, a0, a1_r, a2_r)
+        self.ax3.plot(x_dense, y4_dense, label="a0 / (a1 + a2 * x)")
 
         best = min(results, key=results.get)
 
@@ -374,7 +426,7 @@ class Lab3App:
             f"   RMS = {rms1:.6f}\n\n")
 
         self.result_text.insert(tk.END,
-            f"2) y = a * e^(b x)\n"
+            f"2) y = a * e^(b * x)\n"
             f"   a = {a2:.6f}\n"
             f"   b = {b2:.6f}\n"
             f"   RMS = {rms2:.6f}\n\n")
@@ -386,7 +438,7 @@ class Lab3App:
             f"   RMS = {rms3:.6f}\n\n")
 
         self.result_text.insert(tk.END,
-            f"4) y = a0/(a1 + a2 x)\n"
+            f"4) y = a0 / (a1 + a2 * x)\n"
             f"   a0 = {a0:.6f}\n"
             f"   a1 = {a1_r:.6f}\n"
             f"   a2 = {a2_r:.6f}\n"
@@ -398,8 +450,101 @@ class Lab3App:
         self.ax3.set_title("Сравнение моделей")
         self.ax3.legend()
         self.ax3.grid(True)
+        self.ax3.set_ylim(-5, 12)
         self.canvas3.draw()
 
+#-------------------------------------------------------------
+
+    def setup_tab4(self):
+        pane = ttk.PanedWindow(self.tab4, orient=tk.HORIZONTAL)
+        pane.pack(fill=tk.BOTH, expand=True)
+
+        left = ttk.Frame(pane, width=300)
+        pane.add(left, weight=1)
+
+        right = ttk.Frame(pane)
+        pane.add(right, weight=2)
+
+        ttk.Label(left, text="Число базисных функций m:").pack(pady=5)
+
+        self.entry_m = ttk.Entry(left, width=10)
+        self.entry_m.insert(0, "2")
+        self.entry_m.pack(pady=5)
+
+        ttk.Button(left, text="Решить", command=self.solve_bvp).pack(pady=10)
+
+        self.result_text_4 = tk.Text(left, height=20, width=35)
+        self.result_text_4.pack(fill=tk.BOTH, expand=True)
+
+        self.fig4, self.ax4 = plt.subplots(figsize=(7,6))
+        self.canvas4 = FigureCanvasTkAgg(self.fig4, master=right)
+        self.canvas4.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        NavigationToolbar2Tk(self.canvas4, right)
+
+    def solve_bvp(self):
+        try:
+            m_user = int(self.entry_m.get())
+            if m_user < 1:
+                raise ValueError
+        except ValueError:
+            messagebox.showerror("Ошибка", "m должно быть >= 1")
+            return
+
+        self.ax4.clear()
+        self.result_text_4.delete("1.0", tk.END)
+
+        xs = np.linspace(0, 1, 400)
+
+        # --- m = 2 ---
+        try:
+            C2 = solve_bvp_least_squares(2, N_points=25)
+        except ValueError as e:
+            messagebox.showerror("Ошибка", str(e))
+            return
+        
+        y2 = evaluate_bvp_solution(xs, C2)
+        self.ax4.plot(xs, y2, linewidth=2, label="m = 2")
+
+        # --- m = 3 ---
+        try:
+            C3 = solve_bvp_least_squares(3, N_points=25)
+        except ValueError as e:
+            messagebox.showerror("Ошибка", str(e))
+            return
+        
+        y3 = evaluate_bvp_solution(xs, C3)
+        self.ax4.plot(xs, y3, linewidth=2, linestyle="--", label="m = 3")
+
+        if m_user not in (2, 3):
+            try:
+                C_user = solve_bvp_least_squares(m_user, N_points=25)
+            except ValueError as e:
+                messagebox.showerror("Ошибка", str(e))
+                return
+            
+            y_user = evaluate_bvp_solution(xs, C_user)
+            self.ax4.plot(xs, y_user, linewidth=3, color="black",
+                        label=f"m = {m_user} (польз.)")
+
+            self.result_text_4.insert(tk.END, f"Коэффициенты для m = {m_user}:\n\n")
+            for i, c in enumerate(C_user, start=1):
+                self.result_text_4.insert(tk.END, f"C{i} = {c:.6f}\n")
+
+        self.result_text_4.insert(tk.END, "Коэффициенты для m = 2:\n")
+        for i, c in enumerate(C2, start=1):
+            self.result_text_4.insert(tk.END, f"C{i} = {c:.6f}\n")
+
+        self.result_text_4.insert(tk.END, "\nКоэффициенты для m = 3:\n")
+        for i, c in enumerate(C3, start=1):
+            self.result_text_4.insert(tk.END, f"C{i} = {c:.6f}\n")
+
+        self.ax4.set_title("Приближенное решение краевой задачи (МНК)")
+        self.ax4.set_xlabel("x")
+        self.ax4.set_ylabel("y(x)")
+        self.ax4.grid(True)
+        self.ax4.legend()
+
+        self.canvas4.draw()
 
 if __name__ == "__main__":
     root = tk.Tk()
