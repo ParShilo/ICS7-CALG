@@ -27,7 +27,6 @@ def gaussian_elimination(A, b, eps=1e-12):
     b = b[:]
 
     for i in range(n):
-        # Поиск главного элемента
         max_row = i
         max_val = abs(A[i][i])
 
@@ -36,23 +35,19 @@ def gaussian_elimination(A, b, eps=1e-12):
                 max_val = abs(A[k][i])
                 max_row = k
 
-        # Проверка вырожденности
         if max_val < eps:
             raise ValueError("Матрица вырождена или плохо обусловлена.\n" "Возможно, степень полинома слишком велика (n >= N).")
 
-        # Перестановка строк
         if max_row != i:
             A[i], A[max_row] = A[max_row], A[i]
             b[i], b[max_row] = b[max_row], b[i]
 
-        # Прямой ход
         for k in range(i + 1, n):
             factor = A[k][i] / A[i][i]
             for j in range(i, n):
                 A[k][j] -= factor * A[i][j]
             b[k] -= factor * b[i]
 
-    # Обратный ход
     x_sol = [0.0 for _ in range(n)]
     for i in range(n - 1, -1, -1):
         if abs(A[i][i]) < eps:
