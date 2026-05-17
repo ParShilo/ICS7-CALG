@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 from methods import *
+import matplotlib.pyplot as plt
 
 def main():
     global eps_entry, iter_entry, result_label
@@ -120,15 +121,45 @@ def main():
     result2_label.pack(pady=20)
 
     # ===================== ЗАДАЧА 3 =====================
-
     tab3 = ttk.Frame(notebook)
     notebook.add(tab3, text="Задача 3")
 
     tk.Label(
         tab3,
-        text="Задача 3 будет реализована позже.",
-        font=default_font
-    ).pack(pady=100)
+        text=(
+            "Краевая задача:\n\n "
+            "y'' - y³ = x²,  x ∈ [0, 1]\n "
+            "y(0) = 1,  y(1) = 3\n\n "
+        ),
+        font=default_font,
+        justify="left"
+    ).pack(pady=20)
+
+    frame3 = tk.Frame(tab3)
+    frame3.pack(pady=10)
+
+    tk.Label(frame3, text="Количество узлов N: ", font=default_font)\
+        .grid(row=0, column=0, padx=10, pady=10, sticky="e")
+
+    N_entry = tk.Entry(frame3, font=default_font, width=15)
+    N_entry.insert(0, "20")
+    N_entry.grid(row=0, column=1, padx=10)
+
+    def run_task3():
+        try:
+            N = int(N_entry.get())
+            if N < 3:
+                messagebox.showerror("Ошибка", "N должно быть ≥ 3")
+                return
+            plot_task3_solution(N)
+        except Exception as e:
+            messagebox.showerror("Ошибка", str(e))
+
+    tk.Button(tab3, text="Решить и построить график", font=default_font, command=run_task3)\
+        .pack(pady=20)
+
+    result3_label = tk.Label(tab3, text="", font=default_font, justify="left")
+    result3_label.pack(pady=20)
 
     root.mainloop()
 
@@ -189,6 +220,17 @@ def solve_task2():
     except:
         messagebox.showerror("Ошибка", "Некорректный ввод")
 
+def plot_task3_solution(N=50):
+    x_num, y_num = solve_task3_newton_progonka(N)
+    
+    plt.figure(figsize=(8, 5))
+    plt.plot(x_num, y_num, 'ro-', markersize=6, label=f'Численное решение (N={N})')
+    plt.title('Краевая задача: $y\'\' - y^3 = x^2, \\ y(0)=1, y(1)=3$')
+    plt.xlabel('x')
+    plt.ylabel('y(x)')
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.show()
 
 if __name__ == "__main__":
     main()

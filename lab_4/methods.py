@@ -65,14 +65,14 @@ def trapezoid(a, b, n):
         s += f(a + i * h)
     return h * s 
 
-def integral(x, eps=1e-6, max_iter=50):
+def integral(x, eps=1e-6, max_iter=100):
     if x == 0:
         return 0.0
 
     a = 0.0
     b = x
 
-    n = 10
+    n = 20
 
     I = trapezoid(a, b, n)
 
@@ -81,7 +81,7 @@ def integral(x, eps=1e-6, max_iter=50):
         n *= 2
         I_new = trapezoid(a, b, n)
 
-        delta = abs(I_new - I) / max(abs(I_new), 1e-12)
+        delta = abs(I_new - I) / abs(I_new)
 
         if delta < eps:
             return I_new
@@ -99,7 +99,7 @@ def bisection_method(phi_value, eps, max_iter):
         return None, None, None
 
     a = 0.0
-    b = 10.0
+    b = 10
 
     def F(x):
         return phi(x) - phi_value
@@ -111,12 +111,72 @@ def bisection_method(phi_value, eps, max_iter):
         c = (a + b) / 2
         Fc = F(c)
 
-        if abs(b - a) / max(abs(c), 1e-12) < eps:
+        if abs(b - a) / abs(c) < eps:
             return c, k + 1, abs(b - a)
 
-        if F(a) * Fc < 0:
+        if Fc > 0:
             b = c
         else:
             a = c
 
+        #print(f"{a}, {b}")
+        #print(f"{F(a)}, {F(b)}")
+
     return c, max_iter, abs(b - a)
+
+# ------------------------------------------------------------------
+
+def solve_task3_newton_progonka(N=20, eps_newton=1e-6, max_newton_iter=50):
+    h = 1.0 / N
+    x_nodes = [i * h for i in range(N + 1)]
+    
+    y = [1.0 + 2.0 * xi for xi in x_nodes]
+    
+    M = N - 1
+    
+    for it in range(max_newton_iter):
+        A = [1.0] * M
+        B = [0.0] * M
+        D = [1.0] * M
+        F = [0.0] * M
+        
+        for i in range(M):
+            n = i + 1
+            yn = y[n]
+            
+            B[i] = -2.0 - 3.0 * h**2 * yn**2
+            
+            G_n = y[n-1] - 2.0*yn + y[n+1] - h**2 * yn**3 - h**2 * x_nodes[n]**2
+            F[i] = -G_n 
+            
+        xi = [0.0] * (M + 2)
+        eta = [0.0] * (M + 2)
+        
+        xi[1] = 0.0
+        eta[1] = 0.0
+        
+        for i in range(1, M + 1):
+            idx = i - 1
+            denom = A[idx] * xi[i] + B[idx]
+            
+            if abs(denom) < 1e-15:
+                raise ValueError("Деление на ноль в прямом ходе прогонки")
+                
+            xi[i+1] = -D[idx] / denom
+            eta[i+1] = (F[idx] - A[idx] * eta[i]) / denom
+            
+        delta_y = [0.0] * (M + 2)
+        delta_y[M+1] = 0.0
+        
+        for i in range(M, 0, -1):
+            delta_y[i] = xi[i+1] * delta_y[i+1] + eta[i+1]
+            
+        max_delta = 0.0
+        for i in range(M):
+            y[i+1] += delta_y[i+1]
+            max_delta = max(max_delta, abs(delta_y[i+1]))
+            
+        if max_delta < eps_newton:
+            break
+            
+    return x_nodes, y
