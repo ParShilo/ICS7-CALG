@@ -18,19 +18,18 @@ def main():
     notebook = ttk.Notebook(root)
     notebook.pack(expand=True, fill="both")
 
-    # ===================== ЗАДАЧА 1 =====================
-
     tab1 = ttk.Frame(notebook)
     notebook.add(tab1, text="Задача 1")
 
     system_label = tk.Label(
         tab1,
         text=(
-            "Система уравнений:\n\n"
-            "1) 20 sin(0.7x + 0.7y) - 7x - 7y = 0\n"
-            "2) 20 ln(x) - 6y - x = 0\n\n"
-            "Погрешность:\n"
-            "ε = √(Δx² + Δy²) / √(x² + y²)"
+            "Система уравнений:\n\n "
+            "1) 20 ln(x - y) - x - y = 6\n "
+            "2) 20 sin(0.7x - 0.7y) + 7x + 7y = 0\n\n "
+            "Погрешность:\n "
+            "ε = √(Δx² + Δy²) / √(x² + y²)\n\n"
+            "Область определения: x - y > 0"
         ),
         justify="left",
         font=default_font
@@ -58,14 +57,14 @@ def main():
         .grid(row=2, column=0, padx=10, pady=10, sticky="e")
 
     x0_entry = tk.Entry(input_frame, font=default_font, width=15)
-    x0_entry.insert(0, "2.0")
+    x0_entry.insert(0, "-1.0")
     x0_entry.grid(row=2, column=1, padx=10)
 
     tk.Label(input_frame, text="Начальное приближение y₀:", font=default_font)\
         .grid(row=3, column=0, padx=10, pady=10, sticky="e")
 
     y0_entry = tk.Entry(input_frame, font=default_font, width=15)
-    y0_entry.insert(0, "1.0")
+    y0_entry.insert(0, "-2.0")
     y0_entry.grid(row=3, column=1, padx=10)
 
     tk.Button(tab1, text="Решить", font=default_font, command=solve_task1)\
@@ -83,7 +82,7 @@ def main():
         tab2,
         text=(
             "Функция Лапласа:\n"
-            "Φ(x) = 1/√(2π) ∫₀ˣ exp(-t²/2) dt\n\n"
+            "Φ(x) = 2/√(2π) ∫₀ˣ exp(-t²/2) dt\n\n"
             "Метод: половинного деления"
         ),
         font=default_font,
@@ -177,8 +176,8 @@ def solve_task1():
             messagebox.showerror("Ошибка", "Некорректный ввод")
             return
 
-        if x0 <= 0:
-            messagebox.showerror("Ошибка", "Начальное приближение должно удовлетворять x > 0")
+        if x0 - y0 <= 0:
+            messagebox.showerror("Ошибка", "Начальное приближение должно удовлетворять x - y > 0")
             return
 
         x, y, iterations, delta = newton_method(x0, y0, eps, max_iter)
@@ -222,9 +221,13 @@ def solve_task2():
 
 def plot_task3_solution(N=50):
     x_num, y_num = solve_task3_newton_progonka(N)
+
+    y_initial = [1.0 + 2.0 * xi for xi in x_num]
+    init_label = 'Начальное приближение'
     
     plt.figure(figsize=(8, 5))
     plt.plot(x_num, y_num, 'ro-', markersize=6, label=f'Численное решение (N={N})')
+    plt.plot(x_num, y_initial, 'g--', linewidth=2, label=init_label)
     plt.title('Краевая задача: $y\'\' - y^3 = x^2, \\ y(0)=1, y(1)=3$')
     plt.xlabel('x')
     plt.ylabel('y(x)')

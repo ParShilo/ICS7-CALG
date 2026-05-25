@@ -1,22 +1,22 @@
 import math
 
 def f1(x, y):
-    return 20 * math.sin(0.7 * x + 0.7 * y) - 7 * x - 7 * y
+    return 20 * math.log(x - y) - x - y - 6
 
 def df1dx(x, y):
-    return 14 * math.cos(0.7 * x + 0.7 * y) - 7
+    return 20 / (x - y) - 1
 
 def df1dy(x, y):
-    return 14 * math.cos(0.7 * x + 0.7 * y) - 7
+    return -20 / (x - y) - 1
 
 def f2(x, y):
-    return 20 * math.log(x) - 6 * y - x
+    return 20 * math.sin(0.7 * x - 0.7 * y) + 7 * x + 7 * y
 
 def df2dx(x, y):
-    return 20 / x - 1
+    return 14 * math.cos(0.7 * x - 0.7 * y) + 7
 
 def df2dy(x, y):
-    return -6
+    return -14 * math.cos(0.7 * x - 0.7 * y) + 7
 
 def newton_method(x, y, eps, max_iter):
     delta = None
@@ -38,9 +38,9 @@ def newton_method(x, y, eps, max_iter):
             x_new = x + dx
             y_new = y + dy
 
-            if x_new <= 0:
-                raise ValueError("В ходе итераций получено x ≤ 0")
-
+            if x_new - y_new <= 0:
+                raise ValueError("Нарушена область определения: x - y должно быть > 0")
+            
             delta = math.sqrt(dx**2 + dy**2) / math.sqrt(x_new**2 + y_new**2)
 
             x, y = x_new, y_new
@@ -65,7 +65,7 @@ def trapezoid(a, b, n):
         s += f(a + i * h)
     return h * s 
 
-def integral(x, eps=1e-6, max_iter=100):
+def integral(x, eps=1e-8, max_iter=100):
     if x == 0:
         return 0.0
 
@@ -90,12 +90,12 @@ def integral(x, eps=1e-6, max_iter=100):
 
     return I_new 
 
-def phi(x, eps=1e-6):
-    return integral(x, eps) / math.sqrt(2 * math.pi)
+def phi(x):
+    return 2 * integral(x) / math.sqrt(2 * math.pi)
 
 def bisection_method(phi_value, eps, max_iter):
 
-    if phi_value <= 0 or phi_value >= 0.5:
+    if phi_value <= 0 or phi_value >= 1:
         return None, None, None
 
     a = 0.0
@@ -111,7 +111,7 @@ def bisection_method(phi_value, eps, max_iter):
         c = (a + b) / 2
         Fc = F(c)
 
-        if abs(b - a) / abs(c) < eps:
+        if abs(b - a) / max(1e-12, abs(c)) < eps:
             return c, k + 1, abs(b - a)
 
         if Fc > 0:
@@ -126,7 +126,7 @@ def bisection_method(phi_value, eps, max_iter):
 
 # ------------------------------------------------------------------
 
-def solve_task3_newton_progonka(N=20, eps_newton=1e-6, max_newton_iter=50):
+def solve_task3_newton_progonka(N=20, eps_newton=1e-8, max_newton_iter=50):
     h = 1.0 / N
     x_nodes = [i * h for i in range(N + 1)]
     
