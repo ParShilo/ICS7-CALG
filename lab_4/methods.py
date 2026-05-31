@@ -119,9 +119,6 @@ def bisection_method(phi_value, eps, max_iter):
         else:
             a = c
 
-        #print(f"{a}, {b}")
-        #print(f"{F(a)}, {F(b)}")
-
     return c, max_iter, abs(b - a)
 
 # ------------------------------------------------------------------
