@@ -14,17 +14,23 @@ def get_environment(coords, target, count):
     return coords[start:start+count]
 
 def newton_polynomial_1d(xs, ys, xq):
+    """Интерполяция полиномом Ньютона (стандартная реализация)"""
     n = len(xs)
+    if n == 0:
+        return 0.0
+    if n == 1:
+        return ys[0]
+    
     coef = list(ys)
+    
     for j in range(1, n):
-        for i in range(n - j):
-            coef[i] = (coef[i+1] - coef[i]) / (xs[i+j] - xs[i])
-
-    res = coef[0]
-    term = 1.0
-    for j in range(1, n):
-        term *= (xq - xs[j-1])
-        res += coef[j] * term
+        for i in range(n - 1, j - 1, -1):
+            coef[i] = (coef[i] - coef[i - 1]) / (xs[i] - xs[i - j])
+    
+    res = coef[n - 1]
+    for i in range(n - 2, -1, -1):
+        res = res * (xq - xs[i]) + coef[i]
+    
     return res
 
 def newton_polynomial2D(Z, x_unique, y_unique, target_x, target_y, degree):

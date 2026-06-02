@@ -4,7 +4,7 @@ from simpson import simpson_integral, simpson_integral_by_N
 from gauss import gauss_integral, gauss_integral_by_N
 
 def run_task2():
-    eps = 1e-4
+    eps = 1e-5
     degree = 3
 
     try:
@@ -51,7 +51,7 @@ def run_task2():
     print(f"{'Симпсон (внутр.) + Симпсон (внешн.)':<35} | {I_SS:>15.8f}")
     print(f"{'Гаусс (внутр.) + Гаусс (внешн.)':<35} | {I_GG:>15.8f}")
 
-    N = [4, 8, 16, 32, 64]
+    N = [2, 4, 8, 16, 32, 64]
 
     methods = [
         ("Simpson -> Simpson", "S", "S", N, N),
@@ -62,9 +62,9 @@ def run_task2():
 
     for name, outer_type, inner_type, N_out, N_in in methods:
         print(f"\n{name}:")
-        print("-" * 11 + "+" + ("-" * 12 + "+") * 5)
+        print("-" * 11 + "+" + ("-" * 12 + "+") * 6)
         print(f"{'N_out\\N_in':>10} | " + " | ".join(f"{n:>10}" for n in N_in))
-        print("-" * 11 + "+" + ("-" * 12 + "+") * 5)
+        print("-" * 11 + "+" + ("-" * 12 + "+") * 6)
 
         for n_out in N_out:
             row = []

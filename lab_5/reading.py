@@ -1,19 +1,18 @@
-def read_data(file_name: str = "data.txt"):
-    with open(file_name, "r", encoding="utf-8") as f:
-        lines = f.readlines()
+def read_data(file_name: str="data.txt"):
+    f = open(file_name, "r")
 
-    header = lines[0].split()
-    x_values = [float(val) for val in header[1:]]
-
+    line = f.readline()
     data = []
-    for line in lines[1:]:
-        if not line.strip():
-            continue
-        parts = line.split()
-        y = float(parts[0])
-        z_values = [float(val) for val in parts[1:]]
-        
+    x_values = list(map(float, line.split()[1:]))
+
+    while line := f.readline():
+        line_data = line.split()
+        y = float(line_data[0])
+        z_values = list(map(float, line_data[1:]))
+
         for x, z in zip(x_values, z_values):
             data.append((x, y, z))
-            
+
+    f.close()
+
     return data
