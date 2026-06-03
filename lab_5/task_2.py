@@ -33,7 +33,7 @@ def run_task2():
     phi = lambda x: alpha * x**2
     psi = lambda x: beta  * x**2
 
-    print(f"x∈[{a_val}, {b_val}], y∈[{alpha}*x², {beta}*x²]\n")
+    print(f"x ∈ [{a_val}, {b_val}], y ∈ [{alpha}*x², {beta}*x²]\n")
 
     print("Симпсон (внутр.) + Гаусс (внешн.)")
     I_SG = gauss_integral(lambda x: simpson_integral(lambda y: f(x,y), phi(x), psi(x), eps), a_val, b_val, degree, eps)
@@ -41,10 +41,10 @@ def run_task2():
     I_GS = simpson_integral(lambda x: gauss_integral(lambda y: f(x,y), phi(x), psi(x), degree, eps), a_val, b_val, eps)
     print("Симпсон (внутр.) + Симпсон (внешн.)")
     I_SS = simpson_integral(lambda x: simpson_integral(lambda y: f(x,y), phi(x), psi(x), eps), a_val, b_val, eps)
-    print("Гаусс (внутр.) + Гаусс (внешн.)")
+    print("Гаусс (внутр.) + Гаусс (внешн.)\n\n")
     I_GG = gauss_integral(lambda x: gauss_integral(lambda y: f(x,y), phi(x), psi(x), degree, eps), a_val, b_val, degree, eps)
 
-    print(f"{'Метод':<35} | {'I':>15}")
+    print(f"{'Метод':<35} | {'Интеграл':>15}")
     print("-" * 55)
     print(f"{'Симпсон (внутр.) + Гаусс (внешн.)':<35} | {I_SG:>15.8f}")
     print(f"{'Гаусс (внутр.) + Симпсон (внешн.)':<35} | {I_GS:>15.8f}")
@@ -70,11 +70,9 @@ def run_task2():
             row = []
             for n_in in N_in:
                 if inner_type == "S":
-                    F = lambda x, n=n_in: simpson_integral_by_N(
-                        lambda y: f(x, y), phi(x), psi(x), n)
+                    F = lambda x, n=n_in: simpson_integral_by_N(lambda y: f(x, y), phi(x), psi(x), n)
                 else:
-                    F = lambda x, n=n_in: gauss_integral_by_N(
-                        lambda y: f(x, y), phi(x), psi(x), degree, n)
+                    F = lambda x, n=n_in: gauss_integral_by_N(lambda y: f(x, y), phi(x), psi(x), degree, n)
 
                 if outer_type == "S":
                     val = simpson_integral_by_N(F, a_val, b_val, n_out)
